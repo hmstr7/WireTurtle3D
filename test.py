@@ -161,7 +161,9 @@ my_renderer= Renderer(my_scene, 120)
 def my_anim(context: AnimContext):
     r = 2.
     w = 1.
-    context["cube1"].set([r*cos(w*context.etime), r * (sin(w*context.etime)), -5.]) # Orbit
-    context["cube1"].add(rotation=[10*context.dt,10*context.dt*2,10*context.dt])
-
+    # context["cube1"].set([r*cos(w*context.etime), r * (sin(w*context.etime)), -5.]) # Orbit
+    # context["cube1"].add(rotation=[10*context.dt,10*context.dt*2,10*context.dt])
+    print(context.etime)
+    print(context.interpolate([-2,-2,-10.], [2,2,-10.],5.,10.))
+    context["cube1"].set(location=context.interpolate([-2,-2,-10.], [2,2,-10.],5000.,5050.))
 my_renderer.start()

@@ -1,13 +1,16 @@
 from enum import Enum
 from functools import wraps
 from math import inf
+from numpy._typing._array_like import NDArray
+from numpy._typing._array_like import NDArray
+from numpy._typing._array_like import NDArray
 from time import perf_counter
 from turtle import _Screen, end_fill
 from typing import Annotated, Any, Self, cast, override
-from warnings import deprecated
+#from warnings import deprecated
 import numpy as np
 from numpy.typing import NDArray
-from numpy import deg2rad, float64, int32, tan, cos, sin
+from numpy import deg2rad, exp, float64, int32, tan, cos, sin
 
 import turtle
 
@@ -113,7 +116,7 @@ class Object:
         """
 
         # Location
-        if location:
+        if location is not None:
             if isinstance(location, np.ndarray):
                 if location.shape == (1,3):
                     self.location = location
@@ -128,7 +131,7 @@ class Object:
                 self.location = np.array([location], dtype=float64)
         
         # Rotation
-        if rotation:
+        if rotation is not None:
             if isinstance(rotation, np.ndarray):
                 if not RADIANS:
                     rotation = deg2rad(rotation)
@@ -147,7 +150,7 @@ class Object:
                 self.rotation = np.array([rotation], dtype=float64)
         
         # Scale
-        if scale:
+        if scale is not None:
             if isinstance(scale, np.ndarray):
                 if scale.shape == (1,3):
                     self.scale = scale
@@ -167,7 +170,7 @@ class Object:
         ) -> None:
         """Adds specified transforms on top of the current ones. For argument information refer to `.set()` method docstring."""
         # Location
-        if location:
+        if location is not None:
             if isinstance(location, np.ndarray):
                 if location.shape == (1,3):
                     self.location += location
@@ -182,7 +185,7 @@ class Object:
                 self.location += np.array([location], dtype=float64)
         
         # Rotation
-        if rotation:
+        if rotation is not None:
             if isinstance(rotation, np.ndarray):
                 if not RADIANS:
                     rotation = deg2rad(rotation)
@@ -201,7 +204,7 @@ class Object:
                 self.rotation += np.array([rotation], dtype=float64)
         
         # Scale
-        if scale:
+        if scale is not None:
             if isinstance(scale, np.ndarray):
                 if scale.shape == (1,3):
                     self.scale += scale
@@ -316,7 +319,7 @@ class Camera(Object):
         result[3,2] = -1
         return result
 
-    @deprecated("Use Camera.world_to_camera matrix directly (don't forget to .set when needed)")
+    #@deprecated("Use Camera.world_to_camera matrix directly (don't forget to .set when needed)")
     def world_to_camera_space(self, vertex: NDArray[float64]) -> NDArray[float64]:
         """Converts world coordinates of a point to camera space coordinates.
         
@@ -685,13 +688,15 @@ class AnimContext:
             A: NDArray[float64] | list[float|int] | tuple[int|float,int|float,int|float],
             B: NDArray[float64] | list[float|int] | tuple[int|float,int|float,int|float],
             start: float|int, end: float|int,
+            t: float | int | None  = None,
             mode: int = InterpMode.LINEAR
         ) -> NDArray[float64]:
 
-        start_state: NDArray[float64] = ...  # pyright: ignore[reportAssignmentType]
-        current_state: NDArray[float64] = ...   # pyright: ignore[reportAssignmentType]
-        end_state: NDArray[float64] = ...  # pyright: ignore[reportAssignmentType]
-        
+        start_state: NDArray[float64] = A  # pyright: ignore[reportAssignmentType]
+        current_state: NDArray[float64] = start_state   # pyright: ignore[reportAssignmentType]
+        end_state: NDArray[float64] = B  # pyright: ignore[reportAssignmentType]
+        if not t:
+            t = self.frame
 
         # Type checks
         if isinstance(A, np.ndarray):
@@ -716,7 +721,12 @@ class AnimContext:
             end_state = np.array([B], dtype=float64)
         
         if mode == InterpMode.LINEAR:
-            current_state = start_state + (end-start) * ((1)/(1))
-
-
-        return ...
+            current_state = start_state + (((t-start)*(end_state-start_state))/(end-start))
+        elif mode == InterpMode.LINEAR_ROTATION:
+            R0: NDArray[float64] = rotate(start_state)
+            R1: NDArray[float64] = rotate(end_state)
+            R: NDArray[float64] = R0 @ ((R0.T @ R1.T)**t)
+            current_state = unrotate(R)
+        else:
+            raise ValueError("Incorrect mode")
+        return current_state
