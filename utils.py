@@ -1,10 +1,21 @@
 
+from numpy._typing._array_like import NDArray
+
+
+from numpy._typing._array_like import NDArray
+
+
+#from _typeshed import Incomplete
+
+
 from typing import Any, Callable
 
 
-from numpy import deg2rad, float64, int32, tan, cos, sin
+from numpy import arcsin, atan2, deg2rad, float64, int32, tan, cos, sin
 import numpy as np
 from numpy.typing import NDArray
+
+
 def rotate_roll(theta:float) -> NDArray[float64]:
     """
     - theta: float - in radians
@@ -22,12 +33,7 @@ def rotate_pitch(theta:float) -> NDArray[float64]:
     """
     - theta: float - in radians
     """
-    # result = np.zeros((3,3), float64)
-    # result[0,0] = cos(theta)
-    # result[0,2] = sin(theta)
-    # result[1,1] = 1.
-    # result[0,2] = -sin(theta)
-    # result[2,2] = cos(theta)
+
     result = np.eye(3, dtype=np.float64)
     result[0,0] = cos(theta)
     result[0,2] = sin(theta)
@@ -37,7 +43,7 @@ def rotate_pitch(theta:float) -> NDArray[float64]:
 
 def rotate_yaw(theta:float) -> NDArray[float64]:
     """
-    - theta: float - in radians
+    - theta: float - in radians if `RADIANS=True`
     """
     result = np.zeros((3,3), float64)
     result[0,0] = cos(theta)
@@ -49,17 +55,22 @@ def rotate_yaw(theta:float) -> NDArray[float64]:
     return result
 
 def rotate(rotation: NDArray[float64]) -> NDArray[float64]:
+    """Makes ZYX rotation matrix for a given set of euler angles.
+    - rotation: `NDArray(1,3)` - in radians
+
+    -> `NDArray(3,3)`
+    """
     rotation_matrix = rotate_yaw(rotation[0,2]) @ rotate_pitch(rotation[0,1]) @ rotate_roll(rotation[0,0])
     return rotation_matrix
 
 def make_model_to_world(location: NDArray[float64], rotation: NDArray[float64], scale: NDArray[float64]) -> NDArray[float64]:
     """
     Returns a 4x4 matrix able to convert a homogenuous vector to world space.
-    - location: Point3D
-    - rotation: Point3D
-    - scale: Point3D
+    - location: `NDArray(1,3)`
+    - rotation: `NDArray(1,3)`
+    - scale: `NDArray(1,3)`
 
-    -> NDArray(4,4)[float]
+    -> `NDArray(4,4)`
     
     Note: all points must be row vectors (horizontal), in other words NDArray with the shape (1,3)
     """
@@ -80,3 +91,15 @@ def make_model_to_world(location: NDArray[float64], rotation: NDArray[float64], 
     M[0:3,0:3] = R * scale  # relies on broadcasting shape (1,3)
     M[0:3,3] = location.T.flatten()
     return M
+
+def unrotate(rotation_matrix:NDArray[float64]) -> NDArray[float64]:
+    """Converts a rotation matrix back to euler angles.
+    - rotation_matrix: `NDArray(3,3)`
+
+    -> `NDArray(1,3)` 
+    """
+    if rotation_matrix.shape != (3,3):
+        raise ValueError("Incorrect shape (must be (3,3))")
+    x, y, z = atan2(rotation_matrix[2,1], rotation_matrix[2,2]), arcsin(-rotation_matrix[2,0]), atan2(rotation_matrix[1,0],rotation_matrix[0,0])
+
+    return np.array([[x,y,z]], dtype=float64)
