@@ -1,19 +1,10 @@
-
 from numpy._typing._array_like import NDArray
-
-
-from numpy._typing._array_like import NDArray
-
-
-#from _typeshed import Incomplete
-
-
-from typing import Any, Callable
-
+from typing import Any, Callable, TypeAlias
 
 from numpy import arcsin, atan2, deg2rad, float64, int32, tan, cos, sin
 import numpy as np
 from numpy.typing import NDArray
+from functools import singledispatch
 
 
 def rotate_roll(theta:float) -> NDArray[float64]:
@@ -103,3 +94,15 @@ def unrotate(rotation_matrix:NDArray[float64]) -> NDArray[float64]:
     x, y, z = atan2(rotation_matrix[2,1], rotation_matrix[2,2]), arcsin(-rotation_matrix[2,0]), atan2(rotation_matrix[1,0],rotation_matrix[0,0])
 
     return np.array([[x,y,z]], dtype=float64)
+
+class Vec3:
+    def __init__(self, x:int|float,y:int|float,z:int|float) -> None:
+        self.value: NDArray[float64] = np.array([[x,y,z]],dtype=float64)
+    
+    @classmethod
+    def __class_getitem__(cls, key:tuple[float|int,float|int,float|int]) -> NDArray[float64]:
+        if len(key) != 3:
+            raise ValueError("This is a 3D vector")
+        return np.array([[*key]],dtype=float)
+v = Vec3
+zero = v[0,0,0] 

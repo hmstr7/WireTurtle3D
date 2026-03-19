@@ -1,0 +1,9 @@
+[project]
+name = "wireturtle3d"
+version = "0.1.0"
+description = "A 3D engine based on turtle (wireframe only)"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.4.2",
+]

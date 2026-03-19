@@ -1,38 +1,28 @@
 from math import cos, sin
-import time
-from main import AnimContext, Renderer, Camera, Object, Mesh3D, Scene
+from main import AnimContext, InterpMode, Renderer, Camera, Object, Mesh3D, Scene
 import main
 import numpy as np
+from shapes import Cube, Cuboid
+from utils import v
 
 main.DEBUG =False
 main.DEBUG_SKIP_CLIPPING = False
 main.DEBUG_SHOW_FRAME = False
 
-s = 1./2
-cube_mesh = Mesh3D(
-    vertices= np.array([
-        [-s, -s, -s],
-        [ s, -s, -s],
-        [ s,  s, -s],
-        [-s,  s, -s],
-        [-s, -s,  s],
-        [ s, -s,  s],
-        [ s,  s,  s],
-        [-s,  s,  s]
-    ]),
-    edges=np.array([
-        [0, 1], [1, 2], [2, 3], [3, 0],  # bottom face
-        [4, 5], [5, 6], [6, 7], [7, 4],  # top face
-        [0, 4], [1, 5], [2, 6], [3, 7]   # vertical edges
-    ])
-)
 
 my_scene = Scene({
     "cube1": Object(
         [0.,0.,-5.],
         [0.,0.,0.], 
-        [2.,2.,2.], 
-        mesh = cube_mesh),
+        [1.,1.,1.], 
+        mesh = Cube(2.)
+    ),
+    "rect":Object(
+        [-2.,0.,-7.],
+        [0.,0.,0.], 
+        [1.,1.,1.],
+        mesh= Cuboid(np.array([1.,3.,5.]))
+    ),
     "my_camera": Camera(
         1200,900,
         90, 100., 0.1,
@@ -48,7 +38,10 @@ my_renderer= Renderer(my_scene, 120)
 def my_anim(context: AnimContext):
     r = 2.
     w = 1.
+    my_renderer.print("Hello World")
     context["cube1"].set([r*cos(w*context.etime), r * (sin(w*context.etime)), -5.]) # Orbit
-    context["cube1"].add(rotation=[10*context.dt,10*context.dt*2,10*context.dt])
-
+    context["cube1"].add(rotation=v[10,10*4,10]*context.dt)  # pyright: ignore[reportOperatorIssue]
+    context["rect"].set(location=context.interpolate([-2.,0.,-7.],[3.,0.,-7.], start = 20, end = 40))
+    context["rect"].set(location=context.interpolate([3.,0.,-7.], [-5, -3, -7], start=40, end=100))
+    context["rect"].set(rotation=context.interpolate((0,0,0),(0,90,0),20,100,None, InterpMode.LINEAR))
 my_renderer.start()

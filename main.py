@@ -23,6 +23,7 @@ DEBUG_SHOW_FRAME = False
 
 RADIANS: Annotated[bool, "All given angles are in radians on/off"] = False
 
+EXPENSIVE_N: Annotated[int, "Number of edges per mesh exceeding which can cause performance issues"] = 100
 
 class InterpMode[Enum]:
     LINEAR: Annotated[int, "Used to interpolate location or scale linearly."] = 0
@@ -37,7 +38,7 @@ class Mesh3D:
         """
         self.vertices: NDArray[float64] = vertices
         self.edges: NDArray[int32] = edges
-        #self.center_of_mass = ...
+        self.is_expensive = self.edges.shape[0] >= EXPENSIVE_N
 
 class Object:
     """Generic object class."""
@@ -422,8 +423,14 @@ class Renderer:
         self.window.setup(self.window_width,self.window_height)
         self.window.tracer(False)
 
+        # For printing data, debug
+        self.reserved_turtle= turtle.Turtle(visible=False)
+        self.reserved_turtle.penup()
+        self.reserved_turtle.teleport(-self.window_width/2+1,self.window_height/2-1)
+
+        # For rendering
         self.workers: list[dict[str,turtle.Turtle|int]] = []
-        self.__setup_workers()
+        self.__setup_workers(nworkers)
 
         if fps <= 0:
             raise ValueError("FPS must be greater than 0")
@@ -433,6 +440,7 @@ class Renderer:
         self.animcontext = AnimContext(self.scene, self.animstate)
 
         self.start = self.window.mainloop
+    
     def __setup_workers(self, n: int=10) -> None:
         for i in range(n):
             w = turtle.Turtle(visible=False, undobuffersize=0)
@@ -523,7 +531,7 @@ class Renderer:
 
                 if not DEBUG_SKIP_CLIPPING:
                     self._debug(f"About to clip: {str(i0)}-{str(i1)}")
-                    clipped = self.clip_line(p0, p1)
+                    clipped = self._clip_line(p0, p1)
                     self._debug(f"Clipped output: {str(clipped)}")
                 else:
                     clipped = p0, p1
@@ -544,11 +552,11 @@ class Renderer:
 
             for line in lines:
                 self._debug(f"Drawing line {str(line)}")
-                self.draw(line)  # pyright: ignore[reportArgumentType]
+                self._draw(line)  # pyright: ignore[reportArgumentType]
             
         self._debug('Render finished')
          
-    def clip_line(self,
+    def _clip_line(self,
             p0: NDArray[np.float64],
             p1: NDArray[np.float64],
             eps: float = 1e-8
@@ -607,7 +615,7 @@ class Renderer:
         self._debug(f"Clip result: {str((p0 + t0 * d, p0 + t1 * d))}")
         return (p0 + t0 * d, p0 + t1 * d)
 
-    def draw(self, proj: NDArray[float64]) -> None:
+    def _draw(self, proj: NDArray[float64]) -> None:
         """Draw a 2D segment
         
         - proj: `NDArray()`
@@ -655,6 +663,11 @@ class Renderer:
         wrapper()
         return wrapper
 
+    def print(self, message:str) -> None:
+        self.reserved_turtle.pendown()
+        self.reserved_turtle.clear()
+        self.reserved_turtle.write(message)
+
 class AnimState:
     frame: int = 0
     etime: float = perf_counter()
@@ -690,25 +703,30 @@ class AnimContext:
             start: float|int, end: float|int,
             t: float | int | None  = None,
             mode: int = InterpMode.LINEAR
-        ) -> NDArray[float64]:
-
+        ) -> NDArray[float64]|None:
         start_state: NDArray[float64] = A  # pyright: ignore[reportAssignmentType]
         current_state: NDArray[float64] = start_state   # pyright: ignore[reportAssignmentType]
         end_state: NDArray[float64] = B  # pyright: ignore[reportAssignmentType]
         if not t:
             t = self.frame
+        if start>t:
+            return None
+        if end<t:
+            return None
+
+
 
         # Type checks
         if isinstance(A, np.ndarray):
             if A.shape != (1,3):
                 try:
-                    end_state = A.reshape((1,3))
+                    start_state = A.reshape((1,3))
                 except Exception as e:
                     raise ValueError(f"Invalid argument for location: {str(A)} - {str(e)}")
         elif isinstance(A, list|tuple):
             if len(A) != 3:
                 raise ValueError(f"Invalid argument for location: {str(A)}")
-            end_state = np.array([A], dtype=float64)
+            start_state = np.array([A], dtype=float64)
         if isinstance(B, np.ndarray):
             if B.shape != (1,3):
                 try:
