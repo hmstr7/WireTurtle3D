@@ -1,20 +1,16 @@
 from enum import Enum
 from functools import wraps
-from math import inf
-from numpy._typing._array_like import NDArray
-from numpy._typing._array_like import NDArray
-from numpy._typing._array_like import NDArray
 from time import perf_counter
-from turtle import _Screen, end_fill
-from typing import Annotated, Any, Self, cast, override
+from turtle import _Screen
+from typing import Annotated, Any, Self, cast, override, Callable
 #from warnings import deprecated
 import numpy as np
 from numpy.typing import NDArray
-from numpy import deg2rad, exp, float64, int32, tan, cos, sin
+from numpy import deg2rad, float64, int32, tan
 
 import turtle
 
-from utils import *
+from .utils import *
 
 # Settings
 DEBUG: Annotated[bool, "Debug messages on/off"] = False
@@ -38,7 +34,7 @@ class Mesh3D:
         """
         self.vertices: NDArray[float64] = vertices
         self.edges: NDArray[int32] = edges
-        self.is_expensive = self.edges.shape[0] >= EXPENSIVE_N
+        self.is_expensive: bool = self.edges.shape[0] >= EXPENSIVE_N
 
 class Object:
     """Generic object class."""

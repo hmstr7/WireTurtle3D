@@ -1,13 +1,13 @@
 from math import cos, sin
-from main import AnimContext, InterpMode, Renderer, Camera, Object, Mesh3D, Scene
-import main
+from wireturtle3d import AnimContext, InterpMode, Renderer, Camera, Object, Scene
+import wireturtle3d
 import numpy as np
-from shapes import Cube, Cuboid
-from utils import v
+from wireturtle3d.shapes import Cube, Cuboid
+from wireturtle3d.utils import v
 
-main.DEBUG =False
-main.DEBUG_SKIP_CLIPPING = False
-main.DEBUG_SHOW_FRAME = False
+wireturtle3d.DEBUG =False
+wireturtle3d.DEBUG_SKIP_CLIPPING = False
+wireturtle3d.DEBUG_SHOW_FRAME = False
 
 
 my_scene = Scene({

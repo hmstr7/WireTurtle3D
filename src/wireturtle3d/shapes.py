@@ -1,4 +1,4 @@
-from main import Mesh3D
+from .core import Mesh3D
 from numpy.typing import NDArray
 from numpy import float16, float32, float64, int16, int32, int64
 import numpy as np

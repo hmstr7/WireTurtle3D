@@ -1,10 +1,6 @@
-from numpy._typing._array_like import NDArray
-from typing import Any, Callable, TypeAlias
-
-from numpy import arcsin, atan2, deg2rad, float64, int32, tan, cos, sin
+from numpy import arcsin, atan2, float64, cos, sin
 import numpy as np
 from numpy.typing import NDArray
-from functools import singledispatch
 
 
 def rotate_roll(theta:float) -> NDArray[float64]:
