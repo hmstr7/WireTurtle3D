@@ -41,7 +41,7 @@ class Object:
     def __init__(self,
             location: NDArray[float64] | list[float|int] | tuple[int|float,int|float,int|float], 
             rotation: NDArray[float64] | list[float|int] | tuple[int|float,int|float,int|float], 
-            scale: NDArray[float64] | list[float|int] | tuple[int|float,int|float,int|float], 
+            scale: NDArray[float64] | list[float|int] | tuple[int|float,int|float,int|float] = (1., 1., 1.), 
             mesh: Mesh3D | None = None
         ) -> None:
         """

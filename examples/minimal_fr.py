@@ -1,0 +1,27 @@
+from wireturtle3d import Scene, Object, Renderer, Camera, v, Cube
+from wireturtle3d import AnimContext
+
+# Crée une scène avec des objets
+ma_scene: Scene = Scene({
+    # Chaque scène doit contenir au moins une caméra
+    "camera":Camera(
+        width=1200,height=900, # Définir les dimensions de l'écran
+        location=[0.,0.,0.],
+        rotation=[0.,0.,0.]
+    ),
+    "cube":Object(
+        location=[0.,0.,-5.],
+        rotation=[0.,0.,0.], 
+        scale=[1.,1.,1.],
+        mesh=Cube(1.)
+    )
+})
+
+moteur_rendu: Renderer = Renderer(ma_scene) # Passe la scène à un moteur de rendu.
+
+# Crée une animation en utilisant le moteur_rendu
+@moteur_rendu.animation
+def mon_animation(contexte: AnimContext) -> None: # Pendant l'exécution, un objet de classe AnimContext sera passé à la fonction, servant de raccourci pour accéder aux objets de la scène et à des variables utiles.
+    contexte["cube"].add(rotation=v[0,100,0] * contexte.dt) # Fait tourner le cube autour de l'axe Y (lacet). dt garantit que l'animation s'exécute indépendamment des FPS. Remarque : importez v et utilisez-le avant les listes comme montré pour pouvoir effectuer des opérations telles que la multiplication ou l'addition.
+
+moteur_rendu.start() # Lance le programme.
