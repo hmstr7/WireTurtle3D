@@ -12,7 +12,7 @@ Exemple d'une configuration minimale pour une animation simple :
 from wireturtle3d import Scene, Object, Renderer, Camera, v, Cube
 
 # Crée une scène avec des objets
-my_scene = Scene({
+ma_scene = Scene({
     # Chaque scène doit contenir au moins une caméra
     "camera":Camera(
         width=1200,height=900, # Définir les dimensions de l'écran 
@@ -27,14 +27,14 @@ my_scene = Scene({
     )
 })
 
-renderer = Renderer(my_scene) # Passe la scène à un moteur de rendu.
+moteur_rendu = Renderer(ma_scene) # Passe la scène à un moteur de rendu.
 
 # Crée une animation en utilisant le moteur_rendu
-@renderer.animation
-def my_animation(context): # Pendant l'exécution, un objet de classe AnimContext sera passé à la fonction, servant de raccourci pour accéder aux objets de la scène et à des variables utiles.
-    context["cube"].add(rotation=v[0,100,0]*context.dt) # Fait tourner le cube autour de l'axe Y (lacet). dt garantit que l'animation s'exécute indépendamment des FPS. Remarque : importez v et utilisez-le avant les listes comme montré pour pouvoir effectuer des opérations telles que la multiplication ou l'addition.
+@moteur_rendu.animation
+def mon_animation(contexte): # Pendant l'exécution, un objet de classe AnimContext sera passé à la fonction, servant de raccourci pour accéder aux objets de la scène et à des variables utiles.
+    contexte["cube"].add(rotation=v[0,100,0]*contexte.dt) # Fait tourner le cube autour de l'axe Y (lacet). dt garantit que l'animation s'exécute indépendamment des FPS. Remarque : importez v et utilisez-le avant les listes comme montré pour pouvoir effectuer des opérations telles que la multiplication ou l'addition.
 
-renderer.start() # Lance le programme.
+moteur_rendu.start() # Lance le programme.
 ```
 
 ## Installation
